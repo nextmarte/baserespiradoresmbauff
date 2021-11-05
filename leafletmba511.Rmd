@@ -1,0 +1,63 @@
+---
+title: "Respiradores"
+author: "Marcus Ramalho"
+date: "11/5/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+library(leaflet)
+library(plyr)
+library(dplyr)
+library(RgoogleMaps)
+library(readxl)
+```
+
+### Usando o pacote leaflet e o banco de dados distribuicao_respiradores crie um mapa dinâmico por estado da distribuicao de respiradores.
+
+```{r message=FALSE, warning=FALSE}
+#importando o dataset
+
+disresp <- read_excel("disresp.xlsx")
+
+```
+
+### Vamos criar uma tabela com os estados e suas respectivas latitude e longitude usando o pacote Rgooglemaps
+
+```{r}
+#criando uma tabela com os estados, a quantidade de respiradores enviados e as coordenadas geograficas
+
+estados<-disresp %>% select(DESTINO,QUANTIDADE) %>% #tabela base
+  group_by(DESTINO) %>% 
+  dplyr::summarize(QUANTIDADE=n()) #quantidade total de respiradores por estado
+
+geoestados<-unique(estados$DESTINO) %>% 
+  ldply( function(x) getGeoCode(x)) %>% #gerando as coordenadas geograficas
+data.frame(estados)#data frame com as coordendas, destinos e quantidades
+
+
+
+
+
+```
+
+#### plotando o mapa com leaflet
+
+```{r message=TRUE, warning=FALSE}
+
+leaflet(geoestados) %>%
+  addTiles() %>% 
+  addMarkers(clusterOptions = markerClusterOptions(),label = ~as.character(QUANTIDADE))
+
+```
+
+
+
+
+
+
